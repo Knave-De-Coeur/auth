@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, validator
 
 app = FastAPI()
 
@@ -10,7 +10,13 @@ class UserIn(BaseModel):
     age: int
     first_name: str | None = None
     last_name: str | None = None
-    password: str | None = None
+    password: str
+
+    @validator('password')
+    def is_password_empty(cls, v):
+        if v == "":
+            raise ValueError("should not be empty")
+        return v
 
 
 class UserOut(BaseModel):
@@ -25,7 +31,7 @@ class UserOut(BaseModel):
     email: EmailStr
     first_name: str | None = None
     last_name: str | None = None
-    password: str
+    password: str | None = None
 
 
 def password_hasher(raw_password: str):
