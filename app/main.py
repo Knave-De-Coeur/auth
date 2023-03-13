@@ -1,7 +1,11 @@
 from fastapi import FastAPI
 import re
 
+# from .internal import user
+from .routers import users
+
 app = FastAPI()
+app.include_router(users.router)
 
 
 def simple_format(*args):
@@ -9,11 +13,6 @@ def simple_format(*args):
     return s.format(*args[1:])
 
 
-def print_hi(name):
-    return simple_format(f'Hi, {name}')
-
-
 @app.get("/")
 async def root():
-    name = print_hi("Alexander")
-    return {"message": name}
+    return {"message": "Hello Authentication service!"}
