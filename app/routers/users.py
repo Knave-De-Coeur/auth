@@ -2,13 +2,13 @@ from fastapi import APIRouter
 
 from app.classes import users
 
-router = APIRouter(
+user_router = APIRouter(
     prefix="/users",
     tags=["users"],
     responses={500: {"description": "something went wrong"}}
 )
 
 
-@router.post("/generate-password", tags=["users"])
+@user_router.post("/generate-password", tags=["users"])
 async def generate_pass(user: users.UserIn):
-    return users.generate_hashed_password(user)
+    return await users.generate_hashed_password(user)

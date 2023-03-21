@@ -1,18 +1,22 @@
-from fastapi import FastAPI
-import re
+from app.classes import auth_service as auth
+import asyncio
+import sys
 
-# from .internal import user
-from .routers import users
-
-app = FastAPI()
-app.include_router(users.router)
+app = auth.AuthService()
+app.setup_api()
 
 
-def simple_format(*args):
-    s = re.sub(r'%(\d+)', r'{\1}', args[0])
-    return s.format(*args[1:])
+async def main():
+
+    _ = asyncio.gather(app.connect_to_nats(), app.set_up_subscriptions())
+
+    while not app.shutdown:
+        await app.run()
+
+    await app.stop()
+    sys.exit(0)
 
 
-@app.get("/")
+@app.api.get("/")
 async def root():
     return {"message": "Hello Authentication service!"}
