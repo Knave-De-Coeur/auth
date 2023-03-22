@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from nats.aio.client import Client as Nats, Msg as Msg, Subscription as Sub, Awaitable as Awaitable, Type as Type
 import signal
 # from app.routers import user_router
-from app.routers import users
+from app.routers import users, home
 
 
 class AuthService(object):
@@ -14,7 +14,7 @@ class AuthService(object):
 
     def __init__(self):
         self.api = None
-        self.nc = None
+        self.nc = Nats()
         self.sub = None
         self.shutdown = False
 
@@ -42,8 +42,9 @@ class AuthService(object):
         while True:
             await asyncio.sleep(1)
 
-    async def setup_api(self):
+    def setup_api(self):
         self.api = FastAPI()
+        self.api.include_router(home.home_router)
         self.api.include_router(users.user_router)
 
     async def stop(self):

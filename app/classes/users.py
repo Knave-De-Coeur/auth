@@ -31,7 +31,7 @@ def password_hasher(raw_password: str):
     return "supersecret" + raw_password
 
 
-async def generate_hashed_password(user_in: UserIn) -> UserOut:
+def generate_hashed_password(user_in: UserIn) -> UserOut:
     hashed_password = password_hasher(user_in.password)
     print("successfully generated password!")
     return UserOut(

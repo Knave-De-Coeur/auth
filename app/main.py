@@ -2,21 +2,20 @@ from app.classes import auth_service as auth
 import asyncio
 import sys
 
-app = auth.AuthService()
-app.setup_api()
 
+async def app():
+    service = auth.AuthService()
+    service.setup_api()
 
-async def main():
+    _ = asyncio.gather(service.connect_to_nats(), service.set_up_subscriptions())
 
-    _ = asyncio.gather(app.connect_to_nats(), app.set_up_subscriptions())
+    while not service.shutdown:
+        await service.run()
 
-    while not app.shutdown:
-        await app.run()
-
-    await app.stop()
+    await service.stop()
     sys.exit(0)
 
 
-@app.api.get("/")
-async def root():
-    return {"message": "Hello Authentication service!"}
+if __name__ == '__main__':
+    asyncio.run(app())
+
