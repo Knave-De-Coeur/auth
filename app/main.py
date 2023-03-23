@@ -1,18 +1,36 @@
-from fastapi import FastAPI
-import re
+from app.classes import auth_service as auth
+import asyncio
+import sys
+import uvicorn
 
-# from .internal import user
-from .routers import users
-
-app = FastAPI()
-app.include_router(users.router)
-
-
-def simple_format(*args):
-    s = re.sub(r'%(\d+)', r'{\1}', args[0])
-    return s.format(*args[1:])
+service = auth.AuthService()
+service.setup_api()
 
 
-@app.get("/")
-async def root():
-    return {"message": "Hello Authentication service!"}
+async def create_webserver(port):
+    server_config = uvicorn.Config(service, port=port, log_level="info")
+    server = uvicorn.Server(server_config)
+    await server.serve()
+
+
+async def main():
+    task1 = asyncio.create_task(create_webserver(8000))
+    task2 = service.connect_to_nats()
+    task3 = service.set_up_subscriptions()
+    _ = await asyncio.gather(
+            task1,
+            task2,
+            task3,
+    )
+
+    # terminates nats connection and flushes subscriptions
+    await service.stop()
+
+
+if __name__ == '__main__':
+    try:
+        asyncio.run(main())
+    except Exception as e:
+        print(e)
+        sys.exit(0)
+
