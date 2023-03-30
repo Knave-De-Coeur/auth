@@ -13,7 +13,7 @@ async def create_webserver(port):
     await server.serve()
 
 
-async def main():
+async def app():
     task1 = asyncio.create_task(create_webserver(8000))
     task2 = service.connect_to_nats()
     task3 = service.set_up_subscriptions()
@@ -29,7 +29,7 @@ async def main():
 
 if __name__ == '__main__':
     try:
-        asyncio.run(main())
+        asyncio.run(app())
     except Exception as e:
         print(e)
         sys.exit(0)
