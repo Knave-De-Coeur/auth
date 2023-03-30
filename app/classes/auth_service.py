@@ -1,15 +1,11 @@
-import asyncio
+import json
 from typing import Any
 
 from fastapi import FastAPI
 from nats.aio.client import Client as Nats, Msg as Msg, Subscription as Sub, Awaitable as Awaitable, Type as Type
 
-from app.routers import users, home
 from app.classes.users import User, generate_hashed_password
-
-from fastapi.encoders import jsonable_encoder
-
-import json
+from app.routers import users, home
 
 
 class AuthService(FastAPI):
@@ -48,7 +44,6 @@ class AuthService(FastAPI):
         await self.nc.drain()
 
     async def generate_password(self, m=Type[Msg]) -> Awaitable[None] | None:
-        # subject = m.subject
         reply = m.reply
         try:
             user_raw = json.loads(m.data)
