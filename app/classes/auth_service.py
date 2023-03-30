@@ -1,9 +1,10 @@
-import asyncio
+import json
 from typing import Any
 
 from fastapi import FastAPI
 from nats.aio.client import Client as Nats, Msg as Msg, Subscription as Sub, Awaitable as Awaitable, Type as Type
 
+from app.classes.users import User, generate_hashed_password
 from app.routers import users, home
 
 
@@ -22,7 +23,7 @@ class AuthService(FastAPI):
 
     async def set_up_subscriptions(self):
         try:
-            self.sub = await self.nc.subscribe("auth.generate.password", cb=self.process_request)
+            self.sub = await self.nc.subscribe("auth.generate.password", cb=self.generate_password)
         except Exception as e:
             print(e)
             return
@@ -41,4 +42,16 @@ class AuthService(FastAPI):
         print("nats conn terminating...")
         # Terminate connection to NATS.
         await self.nc.drain()
+
+    async def generate_password(self, m=Type[Msg]) -> Awaitable[None] | None:
+        reply = m.reply
+        try:
+            user_raw = json.loads(m.data)
+            user_in = User(**user_raw)
+            user_with_hashed_pass = generate_hashed_password(user_in)
+            res = user_with_hashed_pass.json()
+        except Exception as e:
+            print(e)
+            return await self.nc.publish(reply, b'{message:"something went wrong getting message"}')
+        return await self.nc.publish(reply, str.encode(res))
 

@@ -1,15 +1,38 @@
 version: "3.9"
 services:
   app:
+      container_name: auth_service
       build: .
       command: uvicorn app.main:app --host 0.0.0.0
       volumes:
-        - .:/app
+        - auth-data:/app
+      networks:
+        auth-network:
       ports:
         - "8000:8000"
       depends_on:
         - redis
+        - nats
+
+  nats:
+    image: nats
+    expose:
+      - "4222"
+    ports:
+      - "8222:8222"
+      - "6222:6222"
+      - "4222:4222"
+    networks: [ "nats" ]
+
   redis:
       image: "redis:alpine"
       ports:
         - "6379:6379"
+
+networks:
+  auth-network:
+  nats:
+    name: nats
+
+volumes:
+  auth-data:

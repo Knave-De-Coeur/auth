@@ -10,5 +10,5 @@ user_router = APIRouter(
 
 
 @user_router.post("/generate-password", tags=["users"])
-def generate_pass(user: users.UserIn):
+def generate_pass(user: users.User):
     return users.generate_hashed_password(user)
